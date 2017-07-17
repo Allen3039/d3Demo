@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="../d3/d3.js"></script>
+    <script src="../d3/d3.tip.js"></script>
+</head>
+
+<body>
+    <div id="pie"></div>
+    <script>
+        var data = [
+            { value: 335, name: '直接访问' },
+            { value: 310, name: '邮件营销' },
+            { value: 234, name: '联盟广告' },
+            { value: 135, name: '视频广告' },
+            { value: 1548, name: '搜索引擎' }
+        ];
+        data = data.map((d, i) => {
+            d.show = true;
+            d.index = i;
+            return d;
+        })
+        var width = 800,
+            height = 800,
+            rectWidth = 25,
+            rectHeight = 16;
+
+        var svg = d3.select('#pie').append('svg')
+            .attr('height', height)
+            .attr('width', width);
+
+        var gLabel = svg.selectAll('g')
+            .data(data)
+            .enter().append('g')
+            .attr('transform', (k, i) => {
+                var x = 10,
+                    y = (rectHeight + 5) * i;
+                return `translate(${x},${y})`;
+            });
+
+
+
+        var colors = d3.scale.category20();//   这是一个函数
+        gLabel.append('rect')
+            .attr({
+                x: 0,
+                y: 0,
+                width: rectWidth,
+                height: rectHeight,
+                fill: (k, i) => colors(i),
+                'data-index': (k, i) => i
+            })
+            .on('click', toogleShow);
+
+        gLabel.append('text')
+            .text(d => {
+                return d.name;
+            })
+            .attr({
+                x: rectWidth + 5,
+                y: Math.round(rectHeight / 2),
+                dy: '0.35em',
+                'font-size': 12
+            })
+        // draw pie
+        var innerRadius = 80,
+            outerRadius = 100,
+            zommedRadius = 110;
+
+        var arc = d3.svg.arc()
+            .innerRadius(innerRadius)//内半径
+            .outerRadius(outerRadius),
+            pie = d3.layout.pie();
+
+        var gWrapper = svg.append('g');// g 标签
+        var tip = d3.tip().attr('class', 'd3-tip').html(d => {
+            return `${d.name}:${d.value}`;
+        });
+        var vis = d3.select(document.body)
+            .append('svg')
+            .attr('width', 100)
+            .attr('height', 20)
+            .append('g')
+            .attr('transform', 'translate(20, 20)')
+            .call(tip)
+        drawPie(data);
+
+        var arcZoomed = d3.svg.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(zommedRadius);
+
+        function drawPie(data) {
+            gWrapper.attr({
+                transform: 'translate(200,200)'
+            })
+                .selectAll('path')
+                .data(pie.value(d => d.value).sort(null)(data))
+                .enter()
+                .append('path')
+                // .style('fill', (d, i) => colors(i))
+                .attr({
+                    'd': arc,
+                    'data-index': (d) => { return d.data.index },
+                    'fill': (d) => colors(d.data.index)
+                })
+                .each(function (d) {
+                    this._current = d;
+                })
+                //.on('mouseover.zoomArc', zoomArc)
+                .on('mouseover.toolTip', tip.show)
+                .on('mouseout.zoomArc', back)
+                .on('mouseout.toolTip', tip.hide)
+        }
+        function updatePie(data) {
+            var updateSel = gWrapper.selectAll('path')
+                .data(pie.value(d => d.value).sort(null)(data));
+
+            updateSel.enter()
+                .append('path');
+            updateSel.exit().remove();
+            updateSel.attr({
+                'data-index': (d) => { return d.data.index },
+                'fill': (d) => colors(d.data.index)
+            })
+                .on('mouseenter', zoomArc)
+                .on('mouseleave', back)
+            updateSel.transition().duration(750).attrTween('d', arcTween)
+
+        }
+        //arcTween 
+        function arcTween(d, i, a) {
+            console.log(a);
+            var i = d3.interpolate(this._current || {}, d);
+            this._current = i(0);
+            return function (t) {
+                //console.log(t);
+                return arc(i(t));
+            };
+        }
+        function zoomArc() {
+            var event = d3.event;
+            d3.select(event.target)
+                .transition()
+                .duration(500)
+                .attr({
+                    'd': arcZoomed
+                });
+        }
+        function back() {
+            var event = d3.event;
+            d3.select(event.target)
+                .transition()
+                .duration(500)
+                .attr({
+                    'd': arc
+                });
+        }
+        function toogleShow() {
+            var target = d3.event.target;
+            var index = target.dataset.index;
+            data[index].show = !data[index].show;
+            d3.select(target)
+                .attr('fill', data[index].show ? colors(index) : 'gray');
+            var dataFiltered = data.filter(d => d.show);
+            updatePie(dataFiltered);
+        }
+    </script>
+</body>
+
+</html>
