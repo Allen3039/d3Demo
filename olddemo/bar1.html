@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+        div.chart>div {
+            padding: 3px;
+            margin: 1px;
+            text-align: right;
+            color: white;
+            background: #4682b4;
+        }
+    </style>
+</head>
+
+<body>
+    <section></section>
+    <section></section>
+    <section></section>
+    <section></section>
+    <section></section>
+    <!--<div class="chart">
+        <div style="width: 40px">4</div>
+        <div style="width: 80px">8</div>
+        <div style="width: 150px">15</div>
+        <div style="width: 160px">16</div>
+        <div style="width: 230px">23</div>
+        <div style="width: 420px">42</div>
+    </div>-->
+    <div class="chart">
+    </div>
+    <script type="text/javascript">
+        var div = document.createElement('div');
+        div.innerHTML = 'hello, World';
+        document.body.appendChild(div);
+
+        var body = d3.select('body');
+        var div2 = body.append('div');
+        div2.html('hello');
+
+        var section = d3.selectAll('section');
+        var div = section.append('div');
+        div.html('section content');
+        div.style('color', 'skyblue')
+            .style('border', '1px solid blue');
+        
+        var data = [4, 8, 15, 16, 23, 42];
+        // d3.select(".chart")
+        //   .selectAll("div")
+        //     .data(data)
+        //   .enter().append("div")
+        //     .style("width", function (d) { return d * 10 + "px"; })
+        //     .text(function (d) { return d; });
+    </script>
+</body>
+
+</html>
