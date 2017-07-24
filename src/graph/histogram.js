@@ -16,7 +16,7 @@ var d3 = require('d3')
 // }
 const defaults = {
 	target: '#chart',
-	width: 800,
+	width: 900,
 	height: 600,
 	margin: { top: 15, right: 0, bottom: 35, left: 60 },
 	axisX: true,
@@ -26,28 +26,30 @@ const defaults = {
 	axisXPadding: 5,
 	axisYPadding: 5,
 	mouseover: _ => { },
-	mouseon: _ => { }
+	mouseon: _ => { },
+	color: 'skyblue'
 }
 
 class Histogram {
 	constructor(config) {
 		this.set(config)
+		this.init()
 	}
 	init() {
-		const { target, width, height, margin, axisXPadding, axisYPadding, axisX, axisY } = this
+		const { target, width, height, margin, axisXPadding, axisYPadding, axisX, axisY, color } = this
 		const [w, h] = this.dimesion();
 		const colorInterpolate = d3.inerpolate
 		this.chart = d3.select(target)
 			.attr('width', width)
 			.attr('height', height)
 			.append('g')
-			.attr('transform', `translate(${margin.left},${margin.right}`)
+			.attr('transform', `translate(${margin.left},${margin.top})`)
 			.on('mouseover', this.onMouseOver)
 			.on('mouseleave', this.onMouseLeave)
 
 		if (color) {
 			this.color = d3.scaleLinear()
-				.inerpolate(colorInterpolate)
+				.interpolate(colorInterpolate)
 				.range(color)
 		}
 
@@ -77,7 +79,6 @@ class Histogram {
 		if (axisY) {
 			this.chart.append('g')
 				.attr('class', 'y axis')
-				.attr('transform', `translate(${-axisYPadding},0)`)
 				.call(this.yAxis)
 		}
 		this.xBiscet = d3.bisector(d => d.bin).left
@@ -85,7 +86,7 @@ class Histogram {
 	}
 	renderAxis(data, options) {
 		const { chart, x, y, xDomain, yDomain, nice } = this
-		const xd = x.domain(xDomain || d3.extent(data, d => d.value))
+		const xd = x.domain(xDomain || d3.extent(data, d => d.bin))
 		const yd = y.domain(yDomain || d3.extent(data, d => d.value))
 
 		if (nice) {
@@ -110,11 +111,12 @@ class Histogram {
 	dimesion() {
 		const { width, height, margin } = this,
 			w = width - margin.left - margin.right,
-			h = height - margin.top - margin - bottom
+			h = height - margin.top - margin.bottom
 		return [w, h]
 	}
-	render(data, options) {
-
+	render(data, options = {}) {
+		this.data = data
+		this.renderAxis(data, options);
 	}
 }
 module.exports = Histogram
